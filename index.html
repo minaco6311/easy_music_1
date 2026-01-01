@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎵 たのしい音あそび 🎵</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(to bottom, #e0f2fe, #bae6fd);
+      padding: 16px;
+    }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    h1 {
+      font-size: 1.8rem;
+      color: #0369a1;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    
+    .subtitle {
+      font-size: 1.1rem;
+      color: #0284c7;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    
+    /* 音階ボタン */
+    .scale-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 20px;
+    }
+    
+    .scale-btn {
+      border: none;
+      border-radius: 16px;
+      padding: 16px 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.1s;
+      color: white;
+      font-weight: bold;
+    }
+    
+    .scale-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .scale-btn .emoji {
+      font-size: 2rem;
+      margin-bottom: 4px;
+    }
+    
+    .scale-btn .note-name {
+      font-size: 0.9rem;
+    }
+    
+    .btn-pink { background: #f472b6; }
+    .btn-pink:hover { background: #ec4899; }
+    .btn-orange { background: #fb923c; }
+    .btn-orange:hover { background: #f97316; }
+    .btn-yellow { background: #facc15; }
+    .btn-yellow:hover { background: #eab308; }
+    .btn-green { background: #4ade80; }
+    .btn-green:hover { background: #22c55e; }
+    .btn-cyan { background: #22d3ee; }
+    .btn-cyan:hover { background: #06b6d4; }
+    .btn-blue { background: #60a5fa; }
+    .btn-blue:hover { background: #3b82f6; }
+    .btn-purple { background: #a78bfa; }
+    .btn-purple:hover { background: #8b5cf6; }
+    .btn-red { background: #f87171; }
+    .btn-red:hover { background: #ef4444; }
+    
+    /* 最後に押した音の表示 */
+    .last-played {
+      background: white;
+      border-radius: 12px;
+      padding: 12px 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+    
+    .last-played .emoji {
+      font-size: 1.5rem;
+      margin-right: 8px;
+    }
+    
+    /* 曲セクション */
+    h2 {
+      font-size: 1.5rem;
+      color: #0369a1;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    
+    .song-subtitle {
+      color: #0284c7;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    
+    .song-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    
+    @media (min-width: 480px) {
+      .song-buttons {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    
+    .song-btn {
+      border: none;
+      border-radius: 16px;
+      padding: 16px 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s;
+      color: white;
+      font-weight: bold;
+    }
+    
+    .song-btn:hover {
+      transform: scale(1.05);
+    }
+    
+    .song-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .song-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    
+    .song-btn.playing {
+      animation: pulse 0.5s infinite;
+      box-shadow: 0 0 0 4px white;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+    
+    .song-btn .emoji {
+      font-size: 2.2rem;
+      margin-bottom: 8px;
+    }
+    
+    .song-btn .song-name {
+      font-size: 0.85rem;
+      text-align: center;
+      line-height: 1.2;
+    }
+    
+    /* 曲ボタンのグラデーション */
+    .song-yellow { background: linear-gradient(135deg, #facc15, #f59e0b); }
+    .song-green { background: linear-gradient(135deg, #4ade80, #10b981); }
+    .song-pink { background: linear-gradient(135deg, #f472b6, #f43f5e); }
+    .song-amber { background: linear-gradient(135deg, #fbbf24, #eab308); }
+    .song-sky { background: linear-gradient(135deg, #38bdf8, #3b82f6); }
+    .song-purple { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
+    .song-slate { background: linear-gradient(135deg, #94a3b8, #64748b); }
+    .song-red { background: linear-gradient(135deg, #f87171, #f43f5e); }
+    .song-orange { background: linear-gradient(135deg, #fb923c, #d97706); }
+    .song-lime { background: linear-gradient(135deg, #a3e635, #22c55e); }
+    .song-cyan { background: linear-gradient(135deg, #22d3ee, #14b8a6); }
+    .song-emerald { background: linear-gradient(135deg, #34d399, #16a34a); }
+    
+    /* 再生中の表示 */
+    .playing-indicator {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border-radius: 50px;
+      padding: 12px 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .playing-indicator.show {
+      display: flex;
+    }
+    
+    .playing-indicator .note {
+      font-size: 1.5rem;
+      animation: bounce 0.5s infinite;
+    }
+    
+    .playing-indicator .note:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .playing-indicator .text {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #0369a1;
+    }
+    
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    
+    .footer {
+      margin-top: 16px;
+      text-align: center;
+      color: #0284c7;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎵 たのしい音あそび 🎵</h1>
+    <p class="subtitle">ボタンをおすと音がなるよ！</p>
+    
+    <!-- 音階ボタン -->
+    <div class="scale-buttons">
+      <button class="scale-btn btn-pink" onclick="playScale(523, 'さくら', '🌸', 'ド')">
+        <span class="emoji">🌸</span>
+        <span class="note-name">ド</span>
+      </button>
+      <button class="scale-btn btn-orange" onclick="playScale(587, 'みかん', '🍊', 'レ')">
+        <span class="emoji">🍊</span>
+        <span class="note-name">レ</span>
+      </button>
+      <button class="scale-btn btn-yellow" onclick="playScale(659, 'ひまわり', '🌻', 'ミ')">
+        <span class="emoji">🌻</span>
+        <span class="note-name">ミ</span>
+      </button>
+      <button class="scale-btn btn-green" onclick="playScale(698, 'クローバー', '🍀', 'ファ')">
+        <span class="emoji">🍀</span>
+        <span class="note-name">ファ</span>
+      </button>
+      <button class="scale-btn btn-cyan" onclick="playScale(784, 'おさかな', '🐟', 'ソ')">
+        <span class="emoji">🐟</span>
+        <span class="note-name">ソ</span>
+      </button>
+      <button class="scale-btn btn-blue" onclick="playScale(880, 'ちょうちょ', '🦋', 'ラ')">
+        <span class="emoji">🦋</span>
+        <span class="note-name">ラ</span>
+      </button>
+      <button class="scale-btn btn-purple" onclick="playScale(988, 'ぶどう', '🍇', 'シ')">
+        <span class="emoji">🍇</span>
+        <span class="note-name">シ</span>
+      </button>
+      <button class="scale-btn btn-red" onclick="playScale(1047, 'ハート', '❤️', '高いド')">
+        <span class="emoji">❤️</span>
+        <span class="note-name">高いド</span>
+      </button>
+    </div>
+    
+    <div class="last-played" id="lastPlayed" style="display: none;">
+      <span class="emoji" id="lastEmoji"></span>
+      <span id="lastText"></span>
+    </div>
+    
+    <!-- 曲セクション -->
+    <h2>🎶 きょくをきいてみよう 🎶</h2>
+    <p class="song-subtitle">すきな曲をタップしてね！</p>
+    
+    <div class="song-buttons">
+      <button class="song-btn song-yellow" id="song1" onclick="playSong(1)">
+        <span class="emoji">⭐</span>
+        <span class="song-name">きらきらぼし</span>
+      </button>
+      <button class="song-btn song-green" id="song2" onclick="playSong(2)">
+        <span class="emoji">🐸</span>
+        <span class="song-name">かえるのうた</span>
+      </button>
+      <button class="song-btn song-pink" id="song3" onclick="playSong(3)">
+        <span class="emoji">🦋</span>
+        <span class="song-name">ちょうちょう</span>
+      </button>
+      <button class="song-btn song-amber" id="song4" onclick="playSong(4)">
+        <span class="emoji">🐝</span>
+        <span class="song-name">ぶんぶんぶん</span>
+      </button>
+      <button class="song-btn song-sky" id="song5" onclick="playSong(5)">
+        <span class="emoji">🐑</span>
+        <span class="song-name">メリーさんのひつじ</span>
+      </button>
+      <button class="song-btn song-purple" id="song6" onclick="playSong(6)">
+        <span class="emoji">👏</span>
+        <span class="song-name">むすんでひらいて</span>
+      </button>
+      <button class="song-btn song-slate" id="song7" onclick="playSong(7)">
+        <span class="emoji">🐘</span>
+        <span class="song-name">ぞうさん</span>
+      </button>
+      <button class="song-btn song-red" id="song8" onclick="playSong(8)">
+        <span class="emoji">🌷</span>
+        <span class="song-name">チューリップ</span>
+      </button>
+      <button class="song-btn song-orange" id="song9" onclick="playSong(9)">
+        <span class="emoji">🌰</span>
+        <span class="song-name">おおきなくりの木の下で</span>
+      </button>
+      <button class="song-btn song-lime" id="song10" onclick="playSong(10)">
+        <span class="emoji">🐌</span>
+        <span class="song-name">かたつむり</span>
+      </button>
+      <button class="song-btn song-cyan" id="song11" onclick="playSong(11)">
+        <span class="emoji">🫧</span>
+        <span class="song-name">しゃぼんだま</span>
+      </button>
+      <button class="song-btn song-emerald" id="song12" onclick="playSong(12)">
+        <span class="emoji">🌳</span>
+        <span class="song-name">どんぐりころころ</span>
+      </button>
+    </div>
+    
+    <p class="footer">いろんな曲をタップしてたのしもう！</p>
+  </div>
+  
+  <div class="playing-indicator" id="playingIndicator">
+    <span class="note">🎵</span>
+    <span class="text">えんそう中...</span>
+    <span class="note">🎶</span>
+  </div>
+  
+  <script>
+    let audioContext = null;
+    let isPlaying = false;
+    let currentSongId = null;
+    
+    // 音階の周波数
+    const notes = {
+      'ド': 262, 'レ': 294, 'ミ': 330, 'ファ': 349, 'ソ': 392,
+      'ラ': 440, 'シ': 494, 'ド2': 523, 'レ2': 587, 'ミ2': 659,
+      'ファ2': 698, 'ソ2': 784, 'ラ2': 880, 'シ2': 988, 'ド3': 1047
+    };
+    
+    // 曲データ
+    const songs = {
+      1: { // きらきらぼし
+        melody: [
+          { note: 'ド', dur: 0.4 }, { note: 'ド', dur: 0.4 }, { note: 'ソ', dur: 0.4 }, { note: 'ソ', dur: 0.4 },
+          { note: 'ラ', dur: 0.4 }, { note: 'ラ', dur: 0.4 }, { note: 'ソ', dur: 0.8 },
+          { note: 'ファ', dur: 0.4 }, { note: 'ファ', dur: 0.4 }, { note: 'ミ', dur: 0.4 }, { note: 'ミ', dur: 0.4 },
+          { note: 'レ', dur: 0.4 }, { note: 'レ', dur: 0.4 }, { note: 'ド', dur: 0.8 }
+        ]
+      },
+      2: { // かえるのうた
+        melody: [
+          { note: 'ド', dur: 0.4 }, { note: 'レ', dur: 0.4 }, { note: 'ミ', dur: 0.4 }, { note: 'ファ', dur: 0.4 },
+          { note: 'ミ', dur: 0.4 }, { note: 'レ', dur: 0.4 }, { note: 'ド', dur: 0.8 },
+          { note: 'ミ', dur: 0.4 }, { note: 'ファ', dur: 0.4 }, { note: 'ソ', dur: 0.4 }, { note: 'ラ', dur: 0.4 },
+          { note: 'ソ', dur: 0.4 }, { note: 'ファ', dur: 0.4 }, { note: 'ミ', dur: 0.8 }
+        ]
+      },
+      3: { // ちょうちょう
+        melody: [
+          { note: 'ソ', dur: 0.4 }, { note: 'ミ', dur: 0.4 }, { note: 'ミ', dur: 0.8 },
+          { note: 'ファ', dur: 0.4 }, { note: 'レ', dur: 0.4 }, { note: 'レ', dur: 0.8 },
+          { note: 'ド', dur: 0.4 }, { note: 'レ', dur: 0.4 }, { note: 'ミ', dur: 0.4 }, { note: 'ファ', dur: 0.4 },
+          { note: 'ソ', dur: 0.4 }, { note: 'ソ', dur: 0.4 }, { note: 'ソ', dur: 0.8 }
+        ]
+      },
+      4: { // ぶんぶんぶん
+        melody: [
+          { note: 'ソ', dur: 0.5 }, { note: 'ファ', dur: 0.5 }, { note: 'ミ', dur: 0.5 }, { note: 'レ', dur: 0.5 },
+          { note: 'ミ', dur: 0.5 }, { note: 'ファ', dur: 0.5 }, { note: 'レ', dur: 0.5 }, { note: 'ド', dur: 0.8 }
+        ]
+      },
+      5: { // メリーさんのひつじ
+        melody: [
+          { note: 'ミ', dur: 0.4 }, { note: 'レ', dur: 0.4 }, { note: 'ド', dur: 0.4 }, { note: 'レ', dur: 0.4 },
+          { note: 'ミ', dur: 0.4 }, { note: 'ミ', dur: 0.4 }, { note: 'ミ', dur: 0.8 },
+          { note: 'レ', dur: 0.4 }, { note: 'レ', dur: 0.4 }, { note: 'レ', dur: 0.8 },
+          { note: 'ミ', dur: 0.4 }, { note: 'ソ', dur: 0.4 }, { note: 'ソ', dur: 0.8 }
+        ]
+      },
+      6: { // むすんでひらいて
+        melody: [
+          { note: 'ミ', dur: 0.4 }, { note: 'ミ', dur: 0.4 }, { note: 'レ', dur: 0.4 }, { note: 'ド', dur: 0.4 },
+          { note: 'ド', dur: 0.4 }, { note: 'レ', dur: 0.4 }, { note: 'レ', dur: 0.4 }, { note: 'ミ', dur: 0.4 },
+          { note: 'レ', dur: 0.4 }, { note: 'ド', dur: 0.8 }
+        ]
+      },
+      7: { // ぞうさん
+        melody: [
+          { note: 'ファ', dur: 0.6 }, { note: 'レ', dur: 0.3 }, { note: 'ド', dur: 0.6 },
+          { note: 'ファ', dur: 0.6 }, { note: 'レ', dur: 0.3 }, { note: 'ド', dur: 0.6 },
+          { note: 'ファ', dur: 0.4 }, { note: 'ソ', dur: 0.4 }, { note: 'ラ', dur: 0.4 }, { note: 'ド2', dur: 0.4 },
+          { note: 'ラ', dur: 0.4 }, { note: 'ラ', dur: 0.4 }, { note: 'ソ', dur: 0.4 }, { note: 'ファ', dur: 0.4 }, { note: 'ソ', dur: 0.8 }
+        ]
+      },
+      8: { // チューリップ
+        melody: [
+          { note: 'ド', dur: 0.4 }, { note: 'レ', dur: 0.4 }, { note: 'ミ', dur: 0.8 },
+          { note: 'ド', dur: 0.4 }, { note: 'レ', dur: 0.4 }, { note: 'ミ', dur: 0.8 },
+          { note: 'ソ', dur: 0.4 }, { note: 'ミ', dur: 0.4 }, { note: 'レ', dur: 0.4 }, { note: 'ド', dur: 0.4 },
+          { note: 'レ', dur: 0.4 }, { note: 'ミ', dur: 0.4 }, { note: 'レ', dur: 0.8 }
+        ]
+      },
+      9: { // おおきなくりの木の下で
+        melody: [
+          { note: 'ド', dur: 0.4 }, { note: 'ド', dur: 0.4 }, { note: 'レ', dur: 0.4 }, { note: 'ミ', dur: 0.4 },
+          { note: 'ミ', dur: 0.4 }, { note: 'ソ', dur: 0.4 }, { note: 'ミ', dur: 0.4 }, { note: 'ミ', dur: 0.4 },
+          { note: 'レ', dur: 0.4 }, { note: 'レ', dur: 0.4 }, { note: 'ド', dur: 0.8 }
+        ]
+      },
+      10: { // かたつむり
+        melody: [
+          { note: 'ソ', dur: 0.4 }, { note: 'ソ', dur: 0.4 }, { note: 'ソ', dur: 0.4 }, { note: 'ミ', dur: 0.4 },
+          { note: 'ド', dur: 0.4 }, { note: 'ド', dur: 0.4 }, { note: 'ド', dur: 0.4 }, { note: 'レ', dur: 0.4 },
+          { note: 'ミ', dur: 0.4 }, { note: 'ミ', dur: 0.4 }, { note: 'レ', dur: 0.4 }, { note: 'ド', dur: 0.4 },
+          { note: 'レ', dur: 0.8 }
+        ]
+      },
+      11: { // しゃぼんだま
+        melody: [
+          { note: 'ソ', dur: 0.5 }, { note: 'ミ', dur: 0.25 }, { note: 'ソ', dur: 0.75 },
+          { note: 'ラ', dur: 0.5 }, { note: 'ソ', dur: 1.0 },
+          { note: 'ミ', dur: 0.5 }, { note: 'レ', dur: 0.25 }, { note: 'ミ', dur: 0.75 },
+          { note: 'ファ', dur: 0.5 }, { note: 'ミ', dur: 1.0 }
+        ]
+      },
+      12: { // どんぐりころころ
+        melody: [
+          { note: 'ソ', dur: 0.25 }, { note: 'ソ', dur: 0.25 }, { note: 'ミ', dur: 0.5 },
+          { note: 'ソ', dur: 0.25 }, { note: 'ソ', dur: 0.25 }, { note: 'ミ', dur: 0.5 },
+          { note: 'ラ', dur: 0.25 }, { note: 'ラ', dur: 0.25 }, { note: 'ソ', dur: 0.25 }, { note: 'ミ', dur: 0.25 },
+          { note: 'レ', dur: 0.5 }, { note: 'ド', dur: 0.5 }
+        ]
+      }
+    };
+    
+    function getAudioContext() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioContext;
+    }
+    
+    function playSound(frequency, duration) {
+      const ctx = getAudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.frequency.value = frequency;
+      osc.type = 'sine';
+      
+      gain.gain.setValueAtTime(0.5, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+      
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + duration);
+    }
+    
+    function playScale(freq, name, emoji, noteName) {
+      playSound(freq, 0.8);
+      
+      const lastPlayed = document.getElementById('lastPlayed');
+      const lastEmoji = document.getElementById('lastEmoji');
+      const lastText = document.getElementById('lastText');
+      
+      lastPlayed.style.display = 'block';
+      lastEmoji.textContent = emoji;
+      lastText.textContent = name + 'の音 (' + noteName + ')';
+    }
+    
+    async function playSong(songId) {
+      if (isPlaying) return;
+      
+      isPlaying = true;
+      currentSongId = songId;
+      
+      const songBtn = document.getElementById('song' + songId);
+      const indicator = document.getElementById('playingIndicator');
+      const allBtns = document.querySelectorAll('.song-btn');
+      
+      // 全ボタンを無効化
+      allBtns.forEach(btn => btn.disabled = true);
+      songBtn.classList.add('playing');
+      indicator.classList.add('show');
+      
+      const song = songs[songId];
+      
+      for (let i = 0; i < song.melody.length; i++) {
+        const { note, dur } = song.melody[i];
+        playSound(notes[note], dur);
+        await new Promise(r => setTimeout(r, dur * 1000 + 50));
+      }
+      
+      // 再生終了
+      isPlaying = false;
+      currentSongId = null;
+      allBtns.forEach(btn => btn.disabled = false);
+      songBtn.classList.remove('playing');
+      indicator.classList.remove('show');
+    }
+  </script>
+</body>
+</html>
